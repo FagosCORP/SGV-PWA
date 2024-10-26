@@ -1,0 +1,125 @@
+/* Estilos gerais */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  padding-top: 20px;
+  margin: 0;
+  overflow-x: hidden;
+  /* Evita a rolagem horizontal */
+}
+
+.error-message {
+  color: red;
+  font-size: 0.875em;
+}
+
+/* Estilo do header */
+.header {
+  border-bottom: 2px solid #004085;
+  padding: 15px;
+  text-align: center;
+  background-color: #fff;
+  /* Fundo branco para destaque */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Sombra sutil */
+}
+
+.header .logo {
+  max-width: 50px;
+  margin: 0 auto;
+  display: block;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Estilo do formulário */
+.form-group label {
+  font-weight: bold;
+}
+
+/* Estilo do botão */
+#searchButton {
+  margin-top: 10px;
+  font-size: 16px;
+  width: 100%;
+  background-color: #004085;
+  /* Cor do botão */
+  color: #fff;
+  /* Texto branco */
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  /* Muda o cursor ao passar o mouse */
+  transition: background-color 0.3s;
+  /* Transição suave */
+}
+
+.card {
+  border: 1px solid #dee2e6;
+  /* Cor da borda */
+  border-radius: 0.5rem;
+  /* Bordas arredondadas */
+}
+
+.card-title {
+  font-weight: bold;
+  /* Destaca o título */
+}
+
+.card-text {
+  margin-bottom: 1rem;
+  /* Espaçamento inferior */
+}
+
+.btn {
+  flex: 1;
+  /* Faz os botões ocuparem o mesmo espaço */
+  margin: 0 5px;
+  /* Espaçamento entre os botões */
+}
+
+#searchButton:hover {
+  background-color: #003057;
+  /* Cor ao passar o mouse */
+}
+
+/* Estilo dos resultados */
+#result {
+  padding: 15px;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: 400px;
+  /* Limita a altura */
+  overflow-y: auto;
+  /* Habilita a rolagem vertical */
+}
+
+/* Estilos responsivos */
+@media (max-width: 576px) {
+  .header h1 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .header .logo {
+    max-width: 40px;
+  }
+
+  #searchButton {
+    font-size: 14px;
+    padding: 8px;
+    /* Menos padding para telas pequenas */
+  }
+
+  #result {
+    font-size: 14px;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "SGA Vacations",
+  "version": "1.0.0",
+  "description": "Versão inicial de um pwa para gerenciar despesas de viagens",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "@FagosCorp",
+  "license": "ISC"
+}
