@@ -1,3 +1,49 @@
+# CRUD de Gestão de Viagens
+
+Este projeto é um sistema de gerenciamento de viagens que permite aos usuários criar, ler, atualizar e excluir informações sobre suas viagens de forma eficiente.
+
+## Funcionalidades
+
+### Create (Criar)
+- Adicione novas viagens com detalhes como:
+  - Destino
+  - Data de partida
+  - Data de retorno
+  - Orçamento
+  - Descrição
+
+### Read (Ler)
+- Visualize uma lista de viagens cadastradas.
+- Detalhes de cada viagem, incluindo status, itinerário e gastos.
+
+### Update (Atualizar)
+- Edite informações de viagens existentes.
+- Ajuste datas, orçamentos e outros dados relevantes.
+
+### Delete (Excluir)
+- Remova viagens que não são mais necessárias ou que foram canceladas.
+
+## Funcionalidades Adicionais
+- **Filtragem e Pesquisa**: Busque viagens por critérios como destino ou data.
+- **Autenticação**: Permita que apenas usuários registrados acessem e gerenciem suas viagens.
+- **Interface Intuitiva**: Design amigável que facilita a navegação.
+
+## Tecnologias Utilizadas
+- **Frontend**: HTML, CSS, JavaScript (ou frameworks como React, Angular).
+- **Backend**: Node.js, Express (ou outra linguagem/tecnologia).
+- **Banco de Dados**: MongoDB, PostgreSQL (ou qualquer outro sistema de armazenamento).
+
+## Como Usar
+1. Clone este repositório.
+2. Instale as dependências necessárias.
+3. Configure o banco de dados.
+4. Inicie o servidor e acesse a aplicação pelo navegador.
+
+## Conclusão
+O CRUD de gestão de viagens oferece uma solução prática e organizada para o planejamento e acompanhamento de viagens, melhorando a experiência do usuário.
+
+
+
 # Sistema de Cache para API de Câmbio
 
 Este projeto implementa um sistema de cache para otimizar requisições a uma API de câmbio, reduzindo significativamente o número de chamadas realizadas.
