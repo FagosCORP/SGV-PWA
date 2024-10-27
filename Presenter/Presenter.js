@@ -50,6 +50,7 @@ class Presenter {
     }
 
     this.view.finalCvInput.disabled = !isValid;
+    this.view.finalCvInput.value = '';
     this.view.finalValDiv.innerText = ''
   }
 
