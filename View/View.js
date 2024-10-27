@@ -63,8 +63,19 @@ class View {
     this.populateFinalCurrencyOptions(conversionsData);
   }
 
+  createDefaultOption() {
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Selecione';
+    return defaultOption;
+  }
+
+
+
   populateInitialCurrencyOptions() {
     const currencies = ['BRL', 'USD'];
+
+    this.initCvInput.appendChild(this.createDefaultOption());
 
     currencies.forEach(currency => {
       const option = document.createElement('option');
@@ -75,10 +86,7 @@ class View {
   }
 
   populateFinalCurrencyOptions(conversionsData) {
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Selecione';
-    this.finalCvInput.appendChild(defaultOption);
+    this.finalCvInput.appendChild(this.createDefaultOption());
 
     const conversionKeys = Object.keys(conversionsData);
 

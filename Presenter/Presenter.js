@@ -5,6 +5,8 @@ class Presenter {
     this.interactor = interactor;
     this.finalVal = 0;
 
+    this.view.initCvInput.addEventListener('change', () => this.disableExchange());
+    this.view.valInput.addEventListener('change', () => this.disableExchange());
     this.view.finalCvInput.addEventListener('change', () => this.handleCurrencyChange());
     this.view.saveButton.addEventListener('click', () => this.handleSave());
     this.loadData();
@@ -18,17 +20,37 @@ class Presenter {
   }
 
   async handleCurrencyChange() {
-    const conversions = await this.interactor.fetchConversionRates()
     const formData = this.view.getFormData();
     const value = parseFloat(this.view.valInput.value);
 
-    const { finalCv } = formData;
+    const { finalCv, initCv } = formData;
+    if (finalCv != initCv) {
+      const conversions = await this.interactor.fetchConversionRates()
+      const finalCurrency = finalCv == 'BRL' ? conversions.USD : conversions.BRL;
+      this.finalVal = value * finalCurrency[finalCv]
+      this.view.finalValDiv.innerText = isNaN(this.finalVal) ? 0.00 : this.finalVal.toFixed(2)
+      return
+    }
 
-    const finalCurrency = finalCv == 'BRL' ? conversions.USD : conversions.BRL;
-
-    this.finalVal = value * finalCurrency[finalCv]
-
+    this.finalVal = value
     this.view.finalValDiv.innerText = isNaN(this.finalVal) ? 0.00 : this.finalVal.toFixed(2)
+
+  }
+
+  disableExchange() {
+    const valuesInput = this.view.getFormData();
+    let isValid = true;
+
+    if (valuesInput.initCv.trim() === '' || valuesInput.initCv.trim() == 'Selecione') {
+      isValid = false;
+    }
+
+    if (valuesInput.val <= 0 || valuesInput.val.trim() === '') {
+      isValid = false;
+    }
+
+    this.view.finalCvInput.disabled = !isValid;
+    this.view.finalValDiv.innerText = ''
   }
 
   async validateForm() {
@@ -53,12 +75,12 @@ class Presenter {
       this.view.createErrorInput(this.view.valInput, 'Valor deve ser um número válido.');
     }
 
-    if (valuesInput.initCv.trim() === '') {
+    if (valuesInput.initCv.trim() === '' || valuesInput.initCv.trim() == 'Selecione') {
       isValid = false;
       this.view.createErrorInput(this.view.initCvInput, 'Campo inicial é obrigatório.');
     }
 
-    if (valuesInput.finalCv.trim() === '') {
+    if (valuesInput.finalCv.trim() === '' || valuesInput.finalCv.trim() == 'Selecione') {
       isValid = false;
       this.view.createErrorInput(this.view.finalCvInput, 'Campo final é obrigatório.');
     }
