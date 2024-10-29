@@ -105,7 +105,7 @@ class View {
     this.valInput.value = '';
     this.initCvInput.value = '';
     this.finalCvInput.value = '';
-    this.finalValDiv.innerText = '';
+    this.finalValDiv.value = '';
   }
 
   getFormData() {
@@ -119,6 +119,7 @@ class View {
   }
 
   setFormData(data) {
+    console.log(this.finalCvInput);
     this.descInput.value = data.desc;
     this.qtdInput.value = data.qtd;
     this.valInput.value = data.val;

@@ -1,161 +1,161 @@
 class Presenter {
-
   constructor(view, interactor) {
     this.view = view;
     this.interactor = interactor;
     this.finalVal = 0;
 
-    this.view.initCvInput.addEventListener('change', () => this.disableExchange());
-    this.view.valInput.addEventListener('change', () => this.disableExchange());
-    this.view.finalCvInput.addEventListener('change', () => this.handleCurrencyChange());
-    this.view.saveButton.addEventListener('click', () => this.handleSave());
+    this.initEventListeners();
     this.loadData();
   }
 
+  initEventListeners() {
+    this.view.initCvInput.addEventListener('change', this.disableExchange.bind(this));
+    this.view.valInput.addEventListener('change', this.disableExchange.bind(this));
+    this.view.saveButton.addEventListener('click', this.handleSave.bind(this));
+    this.view.finalCvInput.addEventListener('change', this.handleCurrencyChange.bind(this));
+  }
+
   async loadData() {
-    const conversions = await this.interactor.fetchConversionRates()
+    const conversions = await this.interactor.fetchConversionRates();
     const tasks = this.interactor.getFormData();
     this.view.displayConversions(conversions.BRL);
     this.view.displayTasks(tasks);
   }
 
   async handleCurrencyChange() {
-    const formData = this.view.getFormData();
-    const value = parseFloat(this.view.valInput.value);
+    const { finalCv, initCv, val } = this.view.getFormData();
+    const conversions = await this.interactor.fetchConversionRates();
+    this.finalVal = this.calculateFinalValue(val, initCv, finalCv, conversions);
 
-    const { finalCv, initCv } = formData;
-    if (finalCv != initCv) {
-      const conversions = await this.interactor.fetchConversionRates()
-      const finalCurrency = finalCv == 'BRL' ? conversions.USD : conversions.BRL;
-      this.finalVal = value * finalCurrency[finalCv]
-      this.view.finalValDiv.innerText = isNaN(this.finalVal) ? 0.00 : this.finalVal.toFixed(2)
-      return
-    }
+    this.view.finalValDiv.value = isNaN(this.finalVal) ? '0.00' : this.finalVal.toFixed(2);
+    this.updateSaveButtonState();
+  }
 
-    this.finalVal = value
-    this.view.finalValDiv.innerText = isNaN(this.finalVal) ? 0.00 : this.finalVal.toFixed(2)
+  calculateFinalValue(value, initCv, finalCv, conversions) {
+    if (finalCv === initCv) return parseFloat(value) || 0;
+    const conversionRate = finalCv === 'BRL' ? conversions.USD[finalCv] : conversions.BRL[finalCv];
+    return parseFloat(value) * (conversionRate || 1);
+  }
 
+  updateSaveButtonState() {
+    const { desc, qtd, val, initCv, finalCv } = this.view.getFormData();
+    this.view.saveButton.disabled = !this.isFormValid(desc, qtd, val, initCv, finalCv);
   }
 
   disableExchange() {
     const valuesInput = this.view.getFormData();
-    let isValid = true;
-
-    if (valuesInput.initCv.trim() === '' || valuesInput.initCv.trim() == 'Selecione') {
-      isValid = false;
-    }
-
-    if (valuesInput.val <= 0 || valuesInput.val.trim() === '') {
-      isValid = false;
-    }
+    const isValid = this.isExchangeValid(valuesInput);
 
     this.view.finalCvInput.disabled = !isValid;
-    this.view.finalCvInput.value = '';
-    this.view.finalValDiv.innerText = ''
+    if (!isValid) {
+      this.view.finalCvInput.value = '';
+      this.view.finalValDiv.value = '';
+    }
   }
 
-  async validateForm() {
-    const valuesInput = this.view.getFormData();
+  isExchangeValid(valuesInput) {
+    return valuesInput.initCv.trim() !== '' &&
+      valuesInput.initCv.trim() !== 'Selecione' &&
+      valuesInput.val > 0;
+  }
 
-    this.view.errorsMsg.forEach(msg => { if (msg.parentNode) { msg.remove() } });
+  validateForm() {
+    const valuesInput = this.view.getFormData();
+    console.log(valuesInput)
+    this.clearErrors();
+
+    const validations = [
+      { condition: !valuesInput.desc.trim(), error: 'Descrição é obrigatória.', field: this.view.descInput },
+      { condition: valuesInput.qtd <= 0, error: 'Quantidade deve ser maior que 0.', field: this.view.qtdInput },
+      { condition: valuesInput.val <= 0 || valuesInput.val.trim() === '', error: 'Valor deve ser um número válido.', field: this.view.valInput },
+      { condition: !valuesInput.initCv.trim() || valuesInput.initCv === 'Selecione', error: 'Campo inicial é obrigatório.', field: this.view.initCvInput },
+      { condition: !valuesInput.finalCv.trim() || valuesInput.finalCv === 'Selecione', error: 'Campo final é obrigatório.', field: this.view.finalCvInput }
+    ];
 
     let isValid = true;
-
-    if (valuesInput.desc.trim() === '') {
-      isValid = false;
-      this.view.createErrorInput(this.view.descInput, 'Descrição é obrigatória.');
-    }
-
-    if (valuesInput.qtd <= 0) {
-      isValid = false;
-      this.view.createErrorInput(this.view.qtdInput, 'Quantidade deve ser maior que 0.');
-    }
-
-    if (valuesInput.val <= 0 || valuesInput.val.trim() === '') {
-      isValid = false;
-      this.view.createErrorInput(this.view.valInput, 'Valor deve ser um número válido.');
-    }
-
-    if (valuesInput.initCv.trim() === '' || valuesInput.initCv.trim() == 'Selecione') {
-      isValid = false;
-      this.view.createErrorInput(this.view.initCvInput, 'Campo inicial é obrigatório.');
-    }
-
-    if (valuesInput.finalCv.trim() === '' || valuesInput.finalCv.trim() == 'Selecione') {
-      isValid = false;
-      this.view.createErrorInput(this.view.finalCvInput, 'Campo final é obrigatório.');
-    }
-
-    this.view.saveButton.disabled = !isValid;
-
-  }
-
-  initializeValidations() {
-    const svBtText = this.view.saveButton.innerHTML;
-    if (svBtText !== 'Salvar') {
-      return;
-    }
-
-    this.validateForm()
-    this.view.saveButton.disabled = false;
-  }
-
-  async handleSave() {
-    this.initializeValidations();
-    const formData = this.view.getFormData();
-    const { desc, qtd, val, initCv, finalCv } = formData;
-
-    if (desc && qtd > 0 && val && initCv && finalCv && this.finalVal) {
-      formData.val = parseFloat(val).toFixed(2);
-      formData.finalVal = this.finalVal.toFixed(2);
-      this.interactor.saveToLocalStorage(formData);
-      this.view.clearForm();
-      this.loadData();
-    } else {
-      const svBtText = this.view.saveButton.innerHTML;
-      if (svBtText !== 'Salvar') {
-        return;
+    validations.forEach(({ condition, error, field }) => {
+      if (condition) {
+        isValid = false;
+        this.view.createErrorInput(field, error);
       }
-      alert('Por favor, preencha todos os campos corretamente.');
+    });
+
+    return isValid;
+  }
+
+  clearErrors() {
+    this.view.errorsMsg.forEach(msg => msg.remove());
+  }
+
+  toggleSaveEditMode(isEditMode, index = null) {
+    if (isEditMode) {
+      this.view.saveButton.removeEventListener('click', this.handleSave.bind(this));
+      this.view.saveButton.innerHTML = 'Editar';
+      this.view.saveButton.onclick = () => this.handleEdit(index);
+    } else {
+      this.view.saveButton.innerHTML = 'Salvar';
     }
+  }
+
+  handleSave() {
+    if (this.view.saveButton.innerHTML == 'Editar') return;
+    if (!this.validateForm()) return;
+
+    const formData = this.view.getFormData();
+    formData.val = parseFloat(formData.val).toFixed(2);
+    formData.finalVal = this.finalVal.toFixed(2);
+
+    this.interactor.saveToLocalStorage(formData);
+    this.view.clearForm();
+    this.loadData();
+  }
+
+  isFormValid(desc, qtd, val, initCv, finalCv) {
+    return desc && qtd > 0 && val && initCv && finalCv && this.finalVal > 0;
   }
 
   editData(index) {
     const formData = this.interactor.getFormData()[index];
-    this.view.setFormPlaceholder(formData);
-    this.view.saveButton.innerHTML = 'Editar';
-
-    this.view.saveButton.removeEventListener('click', this.handleSave);
-    this.view.saveButton.addEventListener('click', () => this.handleEdit(index, formData));
+    formData.val = '';
+    formData.initCv = '';
+    formData.finalCv = '';
+    this.view.setFormData(formData);
+    this.toggleSaveEditMode(true, index);
   }
 
-  handleEdit(index, oldData) {
-    const formData = this.view.getFormData();
-    const { desc, qtd, val, initCv, finalCv } = formData;
-
-    if (desc && (desc !== oldData.desc) || qtd && (qtd !== oldData.qtd) || val && (val !== oldData.val) || initCv && (initCv !== oldData.initCv) || finalCv && (finalCv !== oldData.finalCv)
-      || this.finalVal && (this.finalVal !== oldData.finalVal)
-
-    ) {
-      let updatedData = {
-        desc: desc || oldData.desc,
-        qtd: qtd || oldData.qtd,
-        val: val || oldData.val,
-        finalVal: this.finalVal || oldData.finalVal,
-        initCv: initCv || oldData.initCv,
-        finalCv: finalCv || oldData.finalCv
-      };
-
-      let allData = this.interactor.getFormData();
-      allData[index] = updatedData;
-      localStorage.setItem(this.interactor.storageKey, JSON.stringify(allData));
-      this.view.clearForm();
-      this.loadData();
-      this.view.saveButton.innerHTML = 'Salvar';
-      alert('Dados atualizados com sucesso!');
-    } else {
-      alert('Atualize os dados!');
+  handleEdit(index) {
+    if (!this.validateForm()) {
+      return;
     }
+
+    const formData = this.view.getFormData();
+    const updatedData = this.getUpdatedData(formData);
+
+    if (this.hasChanges(updatedData, this.interactor.getFormData()[index])) {
+      alert('Dados atualizados com sucesso!');
+      this.view.clearForm();
+      this.view.saveButton.innerHTML = 'Salvar';
+      this.interactor.saveToLocalStorage(updatedData, index);
+      this.loadData();
+    } else {
+      alert('Nenhuma alteração detectada.');
+    }
+    this.toggleSaveEditMode(false);
+  }
+
+  getUpdatedData(formData) {
+    return {
+      desc: formData.desc,
+      qtd: formData.qtd,
+      val: parseFloat(formData.val).toFixed(2),
+      finalVal: this.finalVal.toFixed(2),
+      initCv: formData.initCv,
+      finalCv: formData.finalCv
+    };
+  }
+
+  hasChanges(updatedData, oldData) {
+    return JSON.stringify(updatedData) !== JSON.stringify(oldData);
   }
 
   deleteData(index) {
@@ -163,3 +163,1017 @@ class Presenter {
     this.loadData();
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

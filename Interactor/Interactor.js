@@ -1,14 +1,20 @@
 class Interactor {
   constructor() {
     this.storageKey = 'formData';
-    this.cacheKey = 'conversionCache'; // Para armazenar a última vez que a API foi chamada
-    this.cacheDurationKey = 'cacheData'; // Para armazenar os dados da API
+    this.cacheKey = 'conversionCache';
+    this.cacheDurationKey = 'cacheData';
     this.cacheDuration = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
   }
 
-  saveToLocalStorage(data) {
+  saveToLocalStorage(data, index = null) {
     let formData = JSON.parse(localStorage.getItem(this.storageKey)) || [];
-    formData.push(data);
+
+    if (index !== null && index < formData.length) {
+      formData[index] = data; 
+    } else {
+      formData.push(data);
+    }
+
     localStorage.setItem(this.storageKey, JSON.stringify(formData));
   }
 
@@ -18,25 +24,26 @@ class Interactor {
 
   deleteData(index) {
     let formData = JSON.parse(localStorage.getItem(this.storageKey)) || [];
-    formData.splice(index, 1);
-    localStorage.setItem(this.storageKey, JSON.stringify(formData));
+    if (index < formData.length) {
+      formData.splice(index, 1);
+      localStorage.setItem(this.storageKey, JSON.stringify(formData));
+    }
   }
 
   async fetchConversionRates() {
     const now = Date.now();
     const lastFetchTime = parseInt(localStorage.getItem(this.cacheKey)) || 0;
 
-    // Verifica se o cache está disponível e se não expirou
     if (lastFetchTime && (now - lastFetchTime < this.cacheDuration)) {
       if (this.isPWA()) {
         const cachedData = await this.getCachedData();
         if (cachedData) {
-          return cachedData; // Retorna os dados do cache PWA
+          return cachedData;
         }
       } else {
         const cachedData = localStorage.getItem(this.cacheDurationKey);
         if (cachedData) {
-          return JSON.parse(cachedData); // Retorna os dados do localStorage
+          return JSON.parse(cachedData);
         }
       }
     }
@@ -50,6 +57,7 @@ class Interactor {
       if (!brlResponse.ok || !usdResponse.ok) {
         throw new Error('Erro ao buscar taxas de câmbio');
       }
+
       const brlData = await brlResponse.json();
       const usdData = await usdResponse.json();
 
@@ -58,11 +66,10 @@ class Interactor {
         USD: usdData.conversion_rates
       };
 
-      // Armazena os dados no cache apropriado
       if (this.isPWA()) {
-        await this.cacheData(data); // Armazena no cache PWA
+        await this.cacheData(data);
       } else {
-        localStorage.setItem(this.cacheDurationKey, JSON.stringify(data)); // Armazena no localStorage
+        localStorage.setItem(this.cacheDurationKey, JSON.stringify(data));
       }
       localStorage.setItem(this.cacheKey, Date.now().toString());
 
@@ -74,13 +81,13 @@ class Interactor {
         icon: "error",
         button: "Fechar",
       });
-      throw error; // Propaga o erro para o Presenter
+      throw error;
     }
   }
 
   async cacheData(data) {
     const cache = await caches.open('exchange-rate-cache');
-    const request = new Request('exchange-rates'); // Identificador para a resposta
+    const request = new Request('exchange-rates');
     const response = new Response(JSON.stringify(data));
 
     await cache.put(request, response);
@@ -93,7 +100,7 @@ class Interactor {
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
       const cachedData = await cachedResponse.json();
-      return cachedData; // Retorna os dados em cache
+      return cachedData;
     }
 
     return null;
@@ -103,3 +110,4 @@ class Interactor {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   }
 }
+
