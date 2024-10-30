@@ -61,7 +61,6 @@ class Presenter {
 
   validateForm() {
     const valuesInput = this.view.getFormData();
-    console.log(valuesInput)
     this.clearErrors();
 
     const validations = [
