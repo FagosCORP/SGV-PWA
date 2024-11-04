@@ -92,7 +92,7 @@ class View {
 
     conversionKeys.forEach(key => {
       const option = document.createElement('option');
-      option.value = conversionsData[key];
+      option.value = key;
       option.textContent = key;
       this.finalCvInput.appendChild(option);
     });
