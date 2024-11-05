@@ -119,6 +119,7 @@ class View {
     this.valInput.value = data.val;
     this.initCvInput.value = data.initCv;
     this.finalCvInput.value = data.finalCv;
+    this.finalValDiv.value = data.finalVal; 
   }
 
   setFormPlaceholder(data) {

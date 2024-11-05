@@ -13,6 +13,7 @@ class Presenter {
     this.view.valInput.addEventListener('change', this.disableExchange.bind(this));
     this.view.saveButton.addEventListener('click', this.handleSave.bind(this));
     this.view.finalCvInput.addEventListener('change', this.handleCurrencyChange.bind(this));
+    this.view.qtdInput.addEventListener('change', this.handleCurrencyChangeEdit.bind(this));
   }
 
   async loadData() {
@@ -22,7 +23,19 @@ class Presenter {
     this.view.displayTasks(tasks);
   }
 
+  async handleCurrencyChangeEdit() {
+
+    if (this.view.saveButton.innerHTML == 'Salvar') return;
+    const { finalCv, initCv, val, qtd } = this.view.getFormData();
+    const conversions = await this.interactor.fetchConversionRates();
+    this.finalVal = this.calculateFinalValue(val, qtd, initCv, finalCv, conversions);
+
+    this.view.finalValDiv.value = isNaN(this.finalVal) ? '0.00' : this.finalVal.toFixed(2);
+    this.updateSaveButtonState();
+  }
+
   async handleCurrencyChange() {
+
     const { finalCv, initCv, val, qtd } = this.view.getFormData();
     const conversions = await this.interactor.fetchConversionRates();
     this.finalVal = this.calculateFinalValue(val, qtd, initCv, finalCv, conversions);
@@ -133,7 +146,6 @@ class Presenter {
   async editData(index) {
     const formData = this.interactor.getFormData()[index];
     this.view.setFormData(formData);
-    this.handleCurrencyChange();
     this.toggleSaveEditMode(true, index);
   }
 
@@ -143,8 +155,9 @@ class Presenter {
     }
 
     const formData = this.view.getFormData();
-
     const updatedData = this.getUpdatedData(formData);
+    this.handleCurrencyChange();
+
 
     if (this.hasChanges(updatedData, this.interactor.getFormData()[index])) {
       alert('Dados atualizados com sucesso!');
