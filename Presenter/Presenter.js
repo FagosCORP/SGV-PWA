@@ -30,11 +30,12 @@ class Presenter {
     this.view.finalValDiv.value = isNaN(this.finalVal) ? '0.00' : this.finalVal.toFixed(2);
     this.updateSaveButtonState();
   }
+
   calculateFinalValue(value, qtd, initCv, finalCv, conversions) {
-    const baseValue = parseFloat(value) * qtd;
+    const baseValue = parseFloat(value) * (parseFloat(qtd) || 0);
     if (finalCv === initCv) return baseValue;
 
-    const conversionRate = finalCv === 'BRL' ? conversions.USD[finalCv] : conversions.BRL[finalCv];
+    const conversionRate = conversions[initCv] ? conversions[initCv][finalCv] : 1;
     return baseValue * (conversionRate || 1);
   }
 
@@ -117,7 +118,7 @@ class Presenter {
     if (!this.validateForm()) return;
 
     const formData = this.view.getFormData();
-    formData.val = parseFloat(formData.val).toFixed(2) * formData.qtd;
+    formData.val = (parseFloat(formData.val) * formData.qtd).toFixed(2);
     formData.finalVal = this.finalVal.toFixed(2);
 
     this.interactor.saveToLocalStorage(formData);
@@ -158,11 +159,10 @@ class Presenter {
   }
 
   getUpdatedData(formData) {
-
     return {
       desc: formData.desc,
       qtd: formData.qtd,
-      val: parseFloat(formData.val).toFixed(2) * formData.qtd,
+      val: (parseFloat(formData.val) * formData.qtd).toFixed(2),
       finalVal: this.finalVal.toFixed(2),
       initCv: formData.initCv,
       finalCv: formData.finalCv
@@ -178,3 +178,4 @@ class Presenter {
     this.loadData();
   }
 }
+

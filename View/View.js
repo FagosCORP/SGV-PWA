@@ -10,17 +10,21 @@ class View {
     this.saveButton = document.getElementById('saveBt');
     this.finalValDiv = document.getElementById('finalVal');
     this.resultDiv = document.getElementById('result');
-  }
 
+    this.valInput.addEventListener('input', this.applyCurrencyMask.bind(this));
+  }
   get errorsMsg() {
     return this.document.querySelectorAll('.error-message');
   }
 
-  createErrorInput(input, msg) {
-    const error = document.createElement('div');
-    error.classList.add('error-message');
-    error.textContent = msg;
-    input.parentNode.appendChild(error);
+  applyCurrencyMask() {
+    let value = this.valInput.value;
+
+    value = value.replace(/\D/g, '');
+
+    value = (parseFloat(value) / 100).toFixed(2);
+
+    this.valInput.value = value;
   }
 
   displayTasks(tasks) {
@@ -33,21 +37,16 @@ class View {
             <h5 class="card-title">${item.desc}</h5>
             <p class="card-text">
               <strong>Quantidade:</strong> ${item.qtd} <br>
-            <strong>Inicial: (${item.initCv}) </strong>
-            ${item.val}
-            <br>
-            <strong>Final: (${item.finalCv}) </strong>
-            ${item.finalVal}
-
-            <br>
-            <div class="d-flex justify-content-between">
-              <button class="btn btn-warning btn-sm" onclick="presenter.editData(${index})">
-                <i class="bi bi-pencil-fill"></i> Editar
-              </button>
-              <button class="btn btn-danger btn-sm" onclick="presenter.deleteData(${index})">
-                <i class="bi bi-trash-fill"></i> Deletar
-              </button>
-            </div>
+              <strong>Inicial: (${item.initCv}) </strong>${item.val}<br>
+              <strong>Final: (${item.finalCv}) </strong>${item.finalVal}<br>
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-warning btn-sm" onclick="presenter.editData(${index})">
+                  <i class="bi bi-pencil-fill"></i> Editar
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="presenter.deleteData(${index})">
+                  <i class="bi bi-trash-fill"></i> Deletar
+                </button>
+              </div>
           </div>
       `;
       this.resultDiv.appendChild(itemDiv);
@@ -70,11 +69,8 @@ class View {
     return defaultOption;
   }
 
-
-
   populateInitialCurrencyOptions() {
     const currencies = ['BRL', 'USD'];
-
     this.initCvInput.appendChild(this.createDefaultOption());
 
     currencies.forEach(currency => {
@@ -97,7 +93,6 @@ class View {
       this.finalCvInput.appendChild(option);
     });
   }
-
 
   clearForm() {
     this.descInput.value = '';
@@ -134,3 +129,4 @@ class View {
     this.finalCvInput.placeholder = data.finalCv;
   }
 }
+
