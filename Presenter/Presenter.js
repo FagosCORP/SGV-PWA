@@ -145,6 +145,7 @@ class Presenter {
 
   async editData(index) {
     const formData = this.interactor.getFormData()[index];
+    formData.val = formData.val / formData.qtd;
     this.view.setFormData(formData);
     this.toggleSaveEditMode(true, index);
   }

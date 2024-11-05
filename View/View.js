@@ -110,6 +110,7 @@ class View {
       val: this.valInput.value || 0,
       initCv: this.initCvInput.options[this.initCvInput.selectedIndex].text || '',
       finalCv: this.finalCvInput.options[this.finalCvInput.selectedIndex].text || '',
+      finalCvInput: this.finalValDiv.value 
     };
   }
 
